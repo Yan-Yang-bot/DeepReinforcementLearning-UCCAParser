@@ -1,27 +1,22 @@
 import os
 from glob import glob
-
 from itertools import combinations
-from functools import partial
+
 from ucca import ioutil
-from semstr.convert import FROM_FORMAT
-from semstr.util.amr import WIKIFIER
 
 from tupa.action import Actions
 from tupa.oracle import Oracle
-from tupa.config import Config
+#from tupa.config import Config
 from tupa.states.state import State
 
 def basename(filename):
     return os.path.basename(os.path.splitext(filename)[0])
 
 def passage_files():
-    return [f for dir in ['dev-xml','train-xml'] for f in glob("data/raw/{}/*".format(dir))]
+    return [[f for f in glob("data/raw/{}/*".format(dir))] for dir in ['dev-xml','train-xml']]
 
-def load_passage(filename, annotate=False):
-    WIKIFIER.enabled = False
-    converters = {k: partial(c, annotate=annotate) for k, c in FROM_FORMAT.items()}
-    passages = ioutil.read_files_and_dirs(filename, converters=converters, attempts=1, delay=0)
+def load_passage(filename):
+    passages = ioutil.read_files_and_dirs(filename, attempts=1, delay=0)
     try:
         return next(iter(passages))
     except StopIteration:
@@ -70,14 +65,12 @@ def gen_actions(passage):
         if state.finished:
             break
 
-def produce_oracle(filename):
-    config = Config()
+def produce_oracle(cat, filename):
     setting = Settings(*('implicit', 'linkage')) #TODO: check the format of raw data: 'unlabeled'?
     passage = load_passage(filename)
-    config.update(setting.dict())
-    config.set_format(passage.extra.get("format") or "ucca")
-    store_sequence = "data/oracles/%s%s.txt" % (basename(filename), setting.suffix())
-    with open(store_sequence, "w", encoding="utf-8") as f:
+    print(filename)
+    store_sequence_to = "data/oracles/%s/%s%s.txt" % (cat, basename(filename), setting.suffix())
+    with open(store_sequence_to, "w", encoding="utf-8") as f:
         print(passage, file=f)
         for i, action in enumerate(gen_actions(passage)):
             print(action, file=f)
@@ -86,5 +79,8 @@ def produce_oracle(filename):
 
 if __name__=="__main__":
     filenames = passage_files()
-    for filename in filenames:
-        produce_oracle(filename)
+    c = 'dev'
+    for cat in filenames:
+        for filename in cat:
+            produce_oracle(c, filename)
+        c = 'train'
