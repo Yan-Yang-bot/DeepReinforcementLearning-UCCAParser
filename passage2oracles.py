@@ -6,7 +6,6 @@ from ucca import ioutil
 
 from tupa.action import Actions
 from tupa.oracle import Oracle
-#from tupa.config import Config
 from tupa.states.state import State
 
 def basename(filename):
@@ -66,7 +65,7 @@ def gen_actions(passage):
             break
 
 def produce_oracle(cat, filename):
-    setting = Settings(*('implicit', 'linkage')) #TODO: check the format of raw data: 'unlabeled'?
+    setting = Settings(*('implicit', 'linkage'))
     passage = load_passage(filename)
     print(filename)
     store_sequence_to = "data/oracles/%s/%s%s.txt" % (cat, basename(filename), setting.suffix())
