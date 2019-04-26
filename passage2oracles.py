@@ -1,12 +1,18 @@
-import os
+import os, sys
 from glob import glob
 from itertools import combinations
+from collections import OrderedDict
+import json
 
 from ucca import ioutil
 
 from tupa.action import Actions
 from tupa.oracle import Oracle
 from tupa.states.state import State
+from tupa.config import Config
+from tupa.features.dense_features import DenseFeatureExtractor
+
+
 
 def basename(filename):
     return os.path.basename(os.path.splitext(filename)[0])
@@ -48,20 +54,36 @@ class Settings:
         return "-".join(self.list()) or "default"
 
 envTrainingData = []
+allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
+allTypes = ['SWAP', 'IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE', 'SHIFT', 'FINISH', 'REDUCE']
+allActions = [{'type':t, 'hasLabel': False, 'label':None} for t in ['SHIFT', 'REDUCE', 'SWAP', 'FINISH']]
+allActions.extend([{'type':t, 'hasLabel':True, 'label':l} for l in allLabels for t in ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']])
 
-def gen_actions(passage):
+def gen_actions(passage, feature_extractor):
+    global envTrainingData, allLabels, allTypes, allActions
     oracle = Oracle(passage)
     state = State(passage)
     actions = Actions()
     while True:
-        action = min(oracle.get_actions(state, actions).values(), key=str)
-        trainingData = {}
-        #TODO: transform state/action -> representation, store with reward=1
-        trainingData['obs'] = #DenseFeatureExtractor
-        trainingData['act'] = [action.type, action.type_id, action.tag]
-        #TODO: for other actions, store with reward=0 and state=the same state
-        #TODO: store all those to `envTrainingData`
-        envTrainingData.append(trainingData)
+        acts = oracle.get_actions(state, actions).values()
+        type_label_maps = {a.type:a.tag for a in acts} # There should be no duplicate types with different tags since there is only one golden tree
+        obs = feature_extractor.extract_features(state)['numeric']
+        for act in allActions:
+            cur_type = act['type']
+            cur_has_label = act['hasLabel']
+            cur_label = act['label']
+            r = 0.0
+            if cur_type in list(type_label_maps.keys()): # If action type matches
+                r += 0.5
+                if cur_has_label and cur_label == type_label_maps[cur_type] or not cur_has_label: # If action has no label or label matches
+                    r += 0.5
+            tNum = allTypes.index(cur_type)
+            hasNum = int(cur_has_label)
+            lNum = allLabels.index(cur_label)+1 if cur_has_label else 0
+            actVec = {'type10':tNum, 'hasLabel':hasNum, 'label14':lNum}
+            trainingData = {'obs':obs, 'act':actVec, 'r':r}
+            envTrainingData.append(trainingData)
+        action = min(acts, key=str)
         state.transition(action)
         s = str(action)
         if state.need_label:
@@ -72,24 +94,34 @@ def gen_actions(passage):
         if state.finished:
             break
 
-def produce_oracle(cat, filename):
-    setting = Settings(*('implicit', 'linkage'))
+def produce_oracle(cat, filename, feature_extractor):
     passage = load_passage(filename)
-    print(filename)
-    store_sequence_to = "data/oracles/%s/%s%s.txt" % (cat, basename(filename), setting.suffix())
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    store_sequence_to = "data/oracles/%s/%s.txt" % (cat, basename(filename))#, setting.suffix())
     with open(store_sequence_to, "w", encoding="utf-8") as f:
-        print(passage, file=f)
-        for i, action in enumerate(gen_actions(passage)):
+        for i, action in enumerate(gen_actions(passage, feature_extractor)):
             print(action, file=f)
 
 
 
 if __name__=="__main__":
+    config = Config()
+    setting = Settings(*('implicit'))
+    config.update(setting.dict())
+    config.set_format("ucca")
+    feature_extractor = DenseFeatureExtractor(OrderedDict(),
+                                              indexed = config.args.classifier!='mlp',
+                                              hierarchical=False,
+                                              node_dropout=config.args.node_dropout,
+                                              omit_features=config.args.omit_features)
+
     filenames = passage_files()
     c = 'dev'
     for cat in filenames:
         for filename in cat:
-            produce_oracle(c, filename)
+            produce_oracle(c, filename, feature_extractor)
         c = 'train'
 
-    #TODO: dump envTrainingData to a file for further learning in rewardNN.py
+    # dump envTrainingData to a file for further learning in rewardNN.py
+    json.dump(envTrainingData, open('env-train.json','w'))
