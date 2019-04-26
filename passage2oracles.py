@@ -1,8 +1,7 @@
-import os, sys
+import os, sys, json, gzip
 from glob import glob
 from itertools import combinations
 from collections import OrderedDict
-import json
 
 from ucca import ioutil
 
@@ -99,9 +98,11 @@ def produce_oracle(cat, filename, feature_extractor):
     sys.stdout.write('.')
     sys.stdout.flush()
     store_sequence_to = "data/oracles/%s/%s.txt" % (cat, basename(filename))#, setting.suffix())
-    with open(store_sequence_to, "w", encoding="utf-8") as f:
-        for i, action in enumerate(gen_actions(passage, feature_extractor)):
-            print(action, file=f)
+    #with open(store_sequence_to, "w", encoding="utf-8") as f:
+    #    for i, action in enumerate(gen_actions(passage, feature_extractor)):
+    #        pass#print(action, file=f)
+    for _ in gen_actions(passage, feature_extractor):
+        pass
 
 
 
@@ -124,4 +125,9 @@ if __name__=="__main__":
         c = 'train'
 
     # dump envTrainingData to a file for further learning in rewardNN.py
-    json.dump(envTrainingData, open('env-train.json','w'))
+    json_str = json.dumps(envTrainingData) + "\n"
+    json_bytes = json_str.encode('utf-8')
+    with gzip.GzipFile('env-train.json', 'w') as fout:
+        fout.write(json_bytes)
+    with gzip.GzipFile('env-train-copy.json', 'w') as fout:
+        fout.write(json_bytes)

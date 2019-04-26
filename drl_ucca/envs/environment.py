@@ -24,10 +24,10 @@ class uccaEnv(gym.Env):
                                               omit_features=config.args.omit_features)
         self.sess=tf.Session()
         saver = tf.train.import_meta_graph('my_test_model-1000.meta')
-        saver.restore(self.sess,tf.train.latest_checkpoint('./'))
+        saver.restore(self.sess, tf.train.latest_checkpoint('./'))
         graph = tf.get_default_graph()
-        self.x = graph.get_tensor_by_name("x:0")
-        self.y = graph.get_tensor_by_name("y:0")
+        self.x = graph.get_tensor_by_name("X:0")
+        self.y = graph.get_tensor_by_name("Y:0")
 
     def _step(self, action):
         """
@@ -76,4 +76,4 @@ class uccaEnv(gym.Env):
 
     def _get_reward(self, actVec):
         input = self.stateVec + actVec
-        return self.sess.run(self.y,feed_dict={self.x:input})
+        return self.sess.run(self.y, feed_dict={self.x:[input]})[0]
