@@ -75,7 +75,10 @@ class UccaEnv(gym.Env):
         type = self.simpleActions[action] if action < 4 else self.complexActions[(action-4)//14]
         label = None if action < 4 else self.allLabels[(action-4)%14]
         act = Action(type, tag=label)
-        self.state.transition(act)
+        try:
+            self.state.transition(act)
+        except ValueError:
+            r = -1.0 #TODO: continue training reward function here
         # Get new state
         self.stateVec = self.get_feature()
         return self.stateVec, r, self.state.finished, ''
