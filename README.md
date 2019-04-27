@@ -1,10 +1,19 @@
 # DRL_UCCA
 A Deep Reinforcement Learning Parser for UCCA.
 
+
+## Preparations
+
+1. Run `pip install -r requirement.txt`.
+
+2. Run `python setup.py install`.
+
+3. Check README instructions on [data](https://github.com/DIMPLY/DRL_UCCA/tree/master/data/raw) directory page.
+
 ## Produce reward function training data
 Use
 ```
-passage2oracles.py
+python passage2oracles.py
 ```
 to produce and store a json binary file.
 This will take a long time, and you can omit this step and test the rest of the code using `rwdFuncTrainData_smal_sample_set.json`, a small sample of the training data.
