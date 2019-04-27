@@ -11,7 +11,7 @@ ave_returns_plot = []
 
 # Other globals
 f_n = 0
-filenames = [f for f in glob("data/raw/train-xml/*")]
+filenames = glob("data/raw/train-xml/*")
 batch_size = 40
 sess = tf.Session()
 train_data = []
@@ -27,7 +27,6 @@ def generate_samples(env):
         n_action = 88
 
         # Policy network start
-        ''' for n1 '''
         state = tf.placeholder(shape=[None, n_state], dtype=tf.float32)
         w1 = tf.get_variable("w1", shape=[n_state, 96])
         w2 = tf.get_variable("w2", shape=[96, 96])
@@ -49,7 +48,7 @@ def generate_samples(env):
     train_data=[]
     print("Episode lengths: ")
     for _ in range(batch_size):
-        #TODO: stop when f_n >= len(filenames), need to consider:
+        #TODO: Stop when all files are exhausted. Check f_n >= len(filenames), and consider:
         #TODO:  1.  len(train_data) != batch_size
         #TODO:  2.  Not only end episode, but also jump out of the n_iter loop in main immediately to plot part
         obs = env.reset(load_passage(filenames[f_n]))
