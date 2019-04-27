@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 import json, gzip
-from sklearn import preprocessing
 
 with gzip.GzipFile('env-train.json', 'r') as fin:
     json_bytes = fin.read()
@@ -15,7 +14,10 @@ np.random.shuffle(data)
 print('shuffled')
 
 x = np.asarray([d['obs'] + list(d['act'].values()) for d in data])
-x = preprocessing.scale(x)
+mean = x.mean(axis=0)
+std = x.std(axis=0)
+print(std)
+exit()
 print('waiting for last step...')
 y = np.asarray([d['r'] for d in data])
 
@@ -23,7 +25,8 @@ y = np.asarray([d['r'] for d in data])
 print("data prepared")
 
 X = tf.placeholder(shape=(None, 38), dtype=tf.float32)
-H1 = tf.layers.dense(X, 64, activation="relu")
+_X = tf.divide(tf.subtract(X, mean),std)
+H1 = tf.layers.dense(_X, 64, activation="relu")
 H2 = tf.layers.dense(H1, 64, activation="relu")
 Y = tf.layers.dense(H2, 1)
 
