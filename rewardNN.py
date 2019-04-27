@@ -13,7 +13,7 @@ print('file read', total)
 np.random.shuffle(data)
 print('shuffled')
 
-x = np.asarray([d['obs'] + list(d['act'].values()) for d in data])
+x = np.asarray([d['obs'] + [d['act']] for d in data])
 mean = x.mean(axis=0)
 std = x.std(axis=0)
 print('waiting for last step...')
@@ -22,7 +22,7 @@ y = np.asarray([d['r'] for d in data])
 
 print("data prepared")
 
-X = tf.placeholder(shape=(None, 28), dtype=tf.float32)
+X = tf.placeholder(shape=(None, 26), dtype=tf.float32)
 _X = tf.divide(tf.subtract(X, mean),std)
 H1 = tf.layers.dense(_X, 64, activation="relu")
 H2 = tf.layers.dense(H1, 64, activation="relu")

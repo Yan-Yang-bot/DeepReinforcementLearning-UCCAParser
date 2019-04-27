@@ -8,8 +8,10 @@ from tupa.config import Config
 from tupa.features.dense_features import DenseFeatureExtractor
 
 class UccaEnv(gym.Env):
+
+    simpleActions = ['SHIFT', 'REDUCE', 'SWAP', 'FINISH']
     allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
-    allTypes = ['SWAP', 'IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE', 'SHIFT', 'FINISH', 'REDUCE']
+    complexActions = ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']]
 
     metadata = {'render.modes':['human']}
 
@@ -69,8 +71,8 @@ class UccaEnv(gym.Env):
         # Get reward
         r = self._get_reward(action)
         # Take action
-        type = self.allTypes[action[0]]
-        label = self.allLabels[action[2]-1] if action[1] else None
+        type = self.simpleActions[action] if action < 4 else self.complexActions[(action-4)//14]
+        label = None if action < 4 else self.allLabels[(action-4)%14]
         act = Action(type, tag=label)
         self.state.transition(act)
         # Get new state
@@ -82,6 +84,6 @@ class UccaEnv(gym.Env):
         self.stateVec = self.get_feature()
         return self.stateVec
 
-    def _get_reward(self, actVec):
-        input = self.stateVec + actVec
+    def _get_reward(self, actNum):
+        input = self.stateVec + [actNum]
         return self.sess.run(self.y, feed_dict={self.x:[input]})[0][0]

@@ -54,7 +54,6 @@ class Settings:
 
 envTrainingData = []
 allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
-allTypes = ['SWAP', 'IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE', 'SHIFT', 'FINISH', 'REDUCE']
 allActions = [{'type':t, 'hasLabel': False, 'label':None} for t in ['SHIFT', 'REDUCE', 'SWAP', 'FINISH']]
 allActions.extend([{'type':t, 'hasLabel':True, 'label':l} for l in allLabels for t in ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']])
 
@@ -78,11 +77,8 @@ def gen_actions(passage, feature_extractor):
                 r += 0.5
                 if cur_has_label and cur_label == type_label_maps[cur_type] or not cur_has_label: # If action has no label or label matches
                     r += 0.5
-            tNum = allTypes.index(cur_type)
-            hasNum = int(cur_has_label)
-            lNum = allLabels.index(cur_label)+1 if cur_has_label else 0
-            actVec = {'type10':tNum, 'hasLabel':hasNum, 'label14':lNum}
-            trainingData = {'obs':obs, 'act':actVec, 'r':r}
+            actNum = allActions.index(act)
+            trainingData = {'obs':obs, 'act':actNum, 'r':r}
             envTrainingData.append(trainingData)
         action = min(acts, key=str)
         state.transition(action)
