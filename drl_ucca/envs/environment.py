@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from glob import glob
 import gym
 import tensorflow as tf
 from passage2oracles import Settings
@@ -11,7 +12,7 @@ class UccaEnv(gym.Env):
 
     simpleActions = ['SHIFT', 'REDUCE', 'SWAP', 'FINISH']
     allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
-    complexActions = ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']]
+    complexActions = ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']
 
     metadata = {'render.modes':['human']}
 
@@ -27,7 +28,7 @@ class UccaEnv(gym.Env):
                                               omit_features=config.args.omit_features)
 
         self.sess=tf.Session()
-        saver = tf.train.import_meta_graph('env_r_model-415272.meta')
+        saver = tf.train.import_meta_graph(glob('env_r_model-*.meta')[0])
         saver.restore(self.sess, tf.train.latest_checkpoint('./'))
         graph = tf.get_default_graph()
         self.x = graph.get_tensor_by_name("Placeholder:0")
