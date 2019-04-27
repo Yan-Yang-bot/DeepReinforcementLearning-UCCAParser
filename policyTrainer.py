@@ -2,12 +2,16 @@ import tensorflow as tf
 import argparse
 import gym
 import drl_ucca
+from glob import glob
+from passage2oracles import load_passage
 
 # Preparation for plotting
 import matplotlib.pyplot as plt
 ave_returns_plot = []
 
 # Other globals
+f_n = 0
+filenames = [f for f in glob("data/raw/train-xml/*")]
 batch_size = 40
 sess = tf.Session()
 train_data = []
@@ -18,7 +22,7 @@ def generate_samples(env):
     """
     if 'state' not in globals():
         # Get params for action and state spaces
-        global train_data, state, action_dist
+        global train_data, state, action_dist, f_n, filenames
         n_state = 25
         n_action = 88
 
@@ -45,7 +49,11 @@ def generate_samples(env):
     train_data=[]
     print("Episode lengths: ")
     for _ in range(batch_size):
-        obs = env.reset()
+        #TODO: stop when f_n >= len(filenames), need to consider:
+        #TODO:  1.  len(train_data) != batch_size
+        #TODO:  2.  Not only end episode, but also jump out of the n_iter loop in main immediately to plot part
+        obs = env.reset(load_passage(filenames[f_n]))
+        f_n += 1
         traj = []
         t = 0
         while True:
