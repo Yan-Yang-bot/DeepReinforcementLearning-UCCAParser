@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import json, gzip
+from sklearn import preprocessing
 
 with gzip.GzipFile('env-train.json', 'r') as fin:
     json_bytes = fin.read()
@@ -14,8 +15,10 @@ np.random.shuffle(data)
 print('shuffled')
 
 x = np.asarray([d['obs'] + list(d['act'].values()) for d in data])
+x = preprocessing.scale(x)
 print('waiting for last step...')
 y = np.asarray([d['r'] for d in data])
+
 
 print("data prepared")
 
@@ -26,7 +29,7 @@ Y = tf.layers.dense(H2, 1)
 
 L = tf.placeholder(shape=(None, ), dtype=tf.float32)
 loss = tf.reduce_sum(tf.square(tf.subtract(Y,L)))
-rms = tf.train.RMSPropOptimizer(0.0001)
+rms = tf.train.RMSPropOptimizer(0.001)
 opt = rms.minimize(loss)
 
 
@@ -41,7 +44,7 @@ while i < total:
     end = min(i+128, total)
     loss_value, _ = sess.run([loss, opt], feed_dict={X:x[i:end], L:y[i:end]})
     i += 128
-    if i%1000==0:
+    if i%200==0:
         print("loss: " + loss_value.astype('str'))
 
 print('training finished')

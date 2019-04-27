@@ -1,1 +1,1 @@
-from gym_foo.envs.foo_env import FooEnv
+from drl_ucca.envs.environment import UccaEnv

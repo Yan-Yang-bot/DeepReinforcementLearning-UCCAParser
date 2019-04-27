@@ -19,3 +19,7 @@ data/raw/dev-xml/6*
 data/oracles/dev/*
 data/oracles/train/*
 data/raw/unconvertable
+
+checkpoint
+env-train*.json
+env_r_model-415272*

@@ -1,12 +1,13 @@
 from collections import OrderedDict
 import gym
+import tensorflow as tf
 from passage2oracles import Settings
 from tupa.action import Action
 from tupa.states.state import State
 from tupa.config import Config
 from tupa.features.dense_features import DenseFeatureExtractor
 
-class uccaEnv(gym.Env):
+class UccaEnv(gym.Env):
     allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
     allTypes = ['SWAP', 'IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE', 'SHIFT', 'FINISH', 'REDUCE']
 
@@ -23,13 +24,13 @@ class uccaEnv(gym.Env):
                                               node_dropout=config.args.node_dropout,
                                               omit_features=config.args.omit_features)
         self.sess=tf.Session()
-        saver = tf.train.import_meta_graph('my_test_model-1000.meta')
+        saver = tf.train.import_meta_graph('env_r_model-415272.meta')
         saver.restore(self.sess, tf.train.latest_checkpoint('./'))
         graph = tf.get_default_graph()
-        self.x = graph.get_tensor_by_name("X:0")
-        self.y = graph.get_tensor_by_name("Y:0")
+        self.x = graph.get_tensor_by_name("Placeholder:0")
+        self.y = graph.get_tensor_by_name("dense_2/BiasAdd:0")
 
-    def _step(self, action):
+    def step(self, action):
         """
 
         Parameters
@@ -69,7 +70,7 @@ class uccaEnv(gym.Env):
         self.stateVec = self.feature_extractor.extract_features(self.state)['numeric']
         return self.stateVec, r, self.state.finished, ''
 
-    def _reset(self, passage):
+    def reset(self, passage):
         self.state = State(passage)
         self.stateVec = self.feature_extractor.extract_features(self.state)['numeric']
         return self.stateVec
