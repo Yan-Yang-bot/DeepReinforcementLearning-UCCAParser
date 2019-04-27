@@ -7,3 +7,6 @@ pyspotlight
 word2number
 nltk
 parsimonious
+matplotlib
+tensorflow>=1.13.1
+argparse
