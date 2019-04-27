@@ -23,12 +23,19 @@ class UccaEnv(gym.Env):
                                               hierarchical=False,
                                               node_dropout=config.args.node_dropout,
                                               omit_features=config.args.omit_features)
+
         self.sess=tf.Session()
         saver = tf.train.import_meta_graph('env_r_model-415272.meta')
         saver.restore(self.sess, tf.train.latest_checkpoint('./'))
         graph = tf.get_default_graph()
         self.x = graph.get_tensor_by_name("Placeholder:0")
         self.y = graph.get_tensor_by_name("dense_2/BiasAdd:0")
+
+    def get_feature(self):
+        f = self.feature_extractor.extract_features(self.state)[numeric]
+        for index in [7, 9, 11, 14, 15, 16, 17, 17, 18, 22]:
+            del f[index]
+        return f
 
     def step(self, action):
         """
@@ -67,12 +74,12 @@ class UccaEnv(gym.Env):
         act = Action(type, tag=label)
         self.state.transition(act)
         # Get new state
-        self.stateVec = self.feature_extractor.extract_features(self.state)['numeric']
+        self.stateVec = self.get_feature()
         return self.stateVec, r, self.state.finished, ''
 
     def reset(self, passage):
         self.state = State(passage)
-        self.stateVec = self.feature_extractor.extract_features(self.state)['numeric']
+        self.stateVec = self.get_feature()
         return self.stateVec
 
     def _get_reward(self, actVec):

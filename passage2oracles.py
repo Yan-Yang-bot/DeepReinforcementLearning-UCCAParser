@@ -67,6 +67,8 @@ def gen_actions(passage, feature_extractor):
         acts = oracle.get_actions(state, actions).values()
         type_label_maps = {a.type:a.tag for a in acts} # There should be no duplicate types with different tags since there is only one golden tree
         obs = feature_extractor.extract_features(state)['numeric']
+        for index in [7, 9, 11, 14, 15, 16, 17, 17, 18, 22]:
+            del obs[index]
         for act in allActions:
             cur_type = act['type']
             cur_has_label = act['hasLabel']
@@ -85,10 +87,10 @@ def gen_actions(passage, feature_extractor):
         action = min(acts, key=str)
         state.transition(action)
         s = str(action)
-        if state.need_label:
-            label, _ = oracle.get_label(state, action)
-            state.label_node(label)
-            s += " " + str(label)
+        # if state.need_label:
+        #     label, _ = oracle.get_label(state, action)
+        #     state.label_node(label)
+        #     s += " " + str(label)
         yield s
         if state.finished:
             break
@@ -97,7 +99,7 @@ def produce_oracle(cat, filename, feature_extractor):
     passage = load_passage(filename)
     sys.stdout.write('.')
     sys.stdout.flush()
-    store_sequence_to = "data/oracles/%s/%s.txt" % (cat, basename(filename))#, setting.suffix())
+    #store_sequence_to = "data/oracles/%s/%s.txt" % (cat, basename(filename))#, setting.suffix())
     #with open(store_sequence_to, "w", encoding="utf-8") as f:
     #    for i, action in enumerate(gen_actions(passage, feature_extractor)):
     #        pass#print(action, file=f)
