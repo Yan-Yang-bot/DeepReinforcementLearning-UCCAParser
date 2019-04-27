@@ -26,6 +26,7 @@ class State:
     """
     def __init__(self, passage):
         self.args = Config().args
+        self.args.verify = True
         self.constraints = CONSTRAINTS.get(passage.extra.get("format"), Constraints)(implicit=self.args.implicit)
         self.log = []
         self.finished = False
