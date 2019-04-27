@@ -77,8 +77,11 @@ class UccaEnv(gym.Env):
         act = Action(type, tag=label)
         try:
             self.state.transition(act)
+        #TODO: continue training reward function here
         except ValueError:
-            r = -1.0 #TODO: continue training reward function here
+            r = -1.0
+        except IndexError:
+            r = -1.0
         # Get new state
         self.stateVec = self.get_feature()
         return self.stateVec, r, self.state.finished, ''
