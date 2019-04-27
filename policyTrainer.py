@@ -27,7 +27,6 @@ def generate_samples(env):
         n_action = 88
 
         # Policy network start
-        ''' for n1 '''
         state = tf.placeholder(shape=[None, n_state], dtype=tf.float32)
         w1 = tf.get_variable("w1", shape=[n_state, 96])
         w2 = tf.get_variable("w2", shape=[96, 96])
