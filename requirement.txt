@@ -1,0 +1,9 @@
+ucca
+dynet
+configargparse
+logbook
+semstr
+pyspotlight
+word2number
+nltk
+parsimonious
