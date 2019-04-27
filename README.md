@@ -8,7 +8,7 @@ A Deep Reinforcement Learning Parser for UCCA.
 
 2. Run `python setup.py install`.
 
-3. Check README instructions for [data](https://github.com/DIMPLY/DRL_UCCA/tree/master/data/raw) directory.
+3. Check README instructions on [data](https://github.com/DIMPLY/DRL_UCCA/tree/master/data/raw) directory page.
 
 ## Produce reward function training data
 Use
