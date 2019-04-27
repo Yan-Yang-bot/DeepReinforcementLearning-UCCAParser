@@ -17,7 +17,7 @@ def basename(filename):
     return os.path.basename(os.path.splitext(filename)[0])
 
 def passage_files():
-    return [[f for f in glob("data/raw/{}/*".format(dir))] for dir in ['dev-xml','train-xml']]
+    return [f for dir in ['dev-xml','train-xml'] for f in glob("data/raw/{}/*".format(dir))]
 
 def load_passage(filename):
     passages = ioutil.read_files_and_dirs(filename, attempts=1, delay=0)
@@ -91,7 +91,7 @@ def gen_actions(passage, feature_extractor):
         if state.finished:
             break
 
-def produce_oracle(cat, filename, feature_extractor):
+def produce_oracle(filename, feature_extractor):
     passage = load_passage(filename)
     sys.stdout.write('.')
     sys.stdout.flush()
@@ -116,11 +116,8 @@ if __name__=="__main__":
                                               omit_features=config.args.omit_features)
 
     filenames = passage_files()
-    c = 'dev'
-    for cat in filenames:
-        for filename in cat:
-            produce_oracle(c, filename, feature_extractor)
-        c = 'train'
+    for filename in filenames[:100]: #TODO: solve the problem of "KILLED" while wring file. Use 100 files temporarily before solving this.
+        produce_oracle(filename, feature_extractor)
 
     # dump envTrainingData to a file for further learning in rewardNN.py
     json_str = json.dumps(envTrainingData) + "\n"
