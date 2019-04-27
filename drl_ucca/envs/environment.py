@@ -77,8 +77,12 @@ class UccaEnv(gym.Env):
         act = Action(type, tag=label)
         try:
             self.state.transition(act)
-        except ValueError:
-            r = -1.0 #TODO: continue training reward function here
+        #TODO: continue training reward function here
+        # The actions that produce errors are punished more than the actions that differ from
+        # what the reward function suggests, because the former has more certainty to be wrong.
+        # After reward function is improved the ratio of these two kinds of negative rewards should change.
+        except (ValueError, IndexError, AssertionError):
+            r = -1.0
         # Get new state
         self.stateVec = self.get_feature()
         return self.stateVec, r, self.state.finished, ''
