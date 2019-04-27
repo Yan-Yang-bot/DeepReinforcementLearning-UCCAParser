@@ -72,7 +72,11 @@ def gen_actions(passage, feature_extractor):
             cur_type = act['type']
             cur_has_label = act['hasLabel']
             cur_label = act['label']
-            r = 0.0
+            # TODO: Double consider the reward mechanism.
+            # Encourage the agent to produce less mistake VS encourage it to produce more correctness:
+            # The latter will encourage an episode to go on endlessly, while the former encourage it to end as soon as possible.
+            # For now, choose to be neutral: 100% correct = 0.5 reward; 100% wrong = -0.5 reward
+            r = -0.5
             if cur_type in list(type_label_maps.keys()): # If action type matches
                 r += 0.5
                 if cur_has_label and cur_label == type_label_maps[cur_type] or not cur_has_label: # If action has no label or label matches
