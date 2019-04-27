@@ -35,7 +35,7 @@ class UccaEnv(gym.Env):
         self.y = graph.get_tensor_by_name("dense_2/BiasAdd:0")
 
     def get_feature(self):
-        f = self.feature_extractor.extract_features(self.state)[numeric]
+        f = self.feature_extractor.extract_features(self.state)['numeric']
         for index in [7, 9, 11, 14, 15, 16, 17, 17, 18, 22]:
             del f[index]
         return f
