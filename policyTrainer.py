@@ -111,6 +111,7 @@ def update_policy(alpha):
                        act: cur['act'],  G: cur['R']}
             obj_value, _ = sess.run([obj, opt], feed_dict=feed_dict)
             print("object:", obj_value)
+        print('return: ', traj[0]['R'])
         return_sum += traj[0]['R']
     # Logging & Recording for later plot
     print(len(ave_returns_plot), return_sum/batch_size)
@@ -140,6 +141,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_iter", type=int, default=20)
     parser.add_argument("--lmbd", type=float, default=1.0)
-    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--alpha", type=float, default=0.01)
 
     main(parser.parse_args())
