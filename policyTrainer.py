@@ -1,6 +1,7 @@
 import tensorflow as tf
 import argparse
 import gym
+import sys
 import drl_ucca
 from glob import glob
 from passage2oracles import load_passage
@@ -64,6 +65,7 @@ def generate_samples(env):
             t += 1
             if done:
                 print(t, end=", ")
+                sys.stdout.flush()
                 break
         train_data.append(traj)
 
