@@ -16,8 +16,9 @@ from tupa.features.dense_features import DenseFeatureExtractor
 def basename(filename):
     return os.path.basename(os.path.splitext(filename)[0])
 
-def passage_files():
-    return [f for dir in ['dev-xml','train-xml'] for f in glob("data/raw/{}/*".format(dir))]
+def passage_files(category):
+    return glob("data/raw/{}-xml/*".format(category))
+    #return [f for dir in ['dev-xml','train-xml'] for f in glob("data/raw/{}/*".format(dir))]
 
 def load_passage(filename):
     passages = ioutil.read_files_and_dirs(filename, attempts=1, delay=0)
@@ -119,14 +120,14 @@ if __name__=="__main__":
                                               node_dropout=config.args.node_dropout,
                                               omit_features=config.args.omit_features)
 
-    filenames = passage_files()
-    for filename in filenames[:100]: #TODO: solve the problem of "KILLED" while wring file. Use 100 files temporarily before solving this.
+    filenames = passage_files(sys.argv[1])
+    for filename in filenames: #TODO: solve the problem of "KILLED" while wring file. Use 100 files temporarily before solving this.
         produce_oracle(filename, feature_extractor)
 
     # dump envTrainingData to a file for further learning in rewardNN.py
     json_str = json.dumps(envTrainingData) + "\n"
     json_bytes = json_str.encode('utf-8')
-    with gzip.GzipFile('env-train.json', 'w') as fout:
+    with gzip.GzipFile('env-{}.json'.format(sys.argv[1]), 'w') as fout:
         fout.write(json_bytes)
-    with gzip.GzipFile('env-train-copy.json', 'w') as fout:
-        fout.write(json_bytes)
+    #with gzip.GzipFile('env-train-copy.json', 'w') as fout:
+    #    fout.write(json_bytes)
