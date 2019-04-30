@@ -18,11 +18,14 @@ print('shuffled')
 act_vectors = np.eye(88)
 x = []
 y = []
+i = 0
 for d in data:
-    x.append(d['obs'].extend(act_vectors[d['act']]))
+    x.append(np.append(d['obs'], act_vectors[d['act']]))
     y.append(d['r'])
-    print('.', end='')
-    sys.stdout.flush()
+    i += 1
+    if i%100000==0:
+        sys.stdout.write(str(i//100000)+" ")
+        sys.stdout.flush()
 x = np.asarray(x)
 mean = x.mean(axis=0)
 std = x.std(axis=0)
