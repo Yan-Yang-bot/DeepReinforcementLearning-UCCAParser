@@ -93,5 +93,5 @@ class UccaEnv(gym.Env):
         return self.stateVec
 
     def _get_reward(self, actNum):
-        input = self.stateVec + [actNum]
+        input = self.stateVec + [1 if i==actNum else 0 for i in range(88)]
         return self.sess.run(self.y, feed_dict={self.x:[input]})[0][0]
