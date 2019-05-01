@@ -82,7 +82,7 @@ class UccaEnv(gym.Env):
         # what the reward function suggests, because the former has more certainty to be wrong.
         # After reward function is improved the ratio of these two kinds of negative rewards should change.
         except (ValueError, IndexError, AssertionError):
-            r = -0.5
+            r = -1.0
         # Get new state
         self.stateVec = self.get_feature()
         return self.stateVec, r, self.state.finished, ''

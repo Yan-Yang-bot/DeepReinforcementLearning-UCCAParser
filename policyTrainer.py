@@ -14,16 +14,17 @@ ave_returns_plot = []
 f_n = 0
 filenames = glob("data/raw/train-xml/*")
 batch_size = 40
+
 sess = tf.Session()
 train_data = []
 
-def generate_samples(env):
+def generate_samples(env, args):
     """
     :param env: environment handler
     """
     if 'state' not in globals():
         # Get params for action and state spaces
-        global train_data, state, action_dist, f_n, filenames
+        global train_data, state, action_dist, f_n, filename,saver
         n_state = 25
         n_action = 88
 
@@ -32,6 +33,7 @@ def generate_samples(env):
         w1 = tf.get_variable("w1", shape=[n_state, 96])
         w2 = tf.get_variable("w2", shape=[96, 96])
         w3 = tf.get_variable("w3", shape=[96, n_action])
+        saver = tf.train.Saver({"w1":w1, "w2":w2,"w3":w3})
         o1 = tf.matmul(state, w1)
         h1 = tf.math.softmax(o1)
         o2 = tf.matmul(h1, w2)
@@ -41,7 +43,10 @@ def generate_samples(env):
         action_dist = tf.distributions.Categorical(probs=action_prob[0])
 
         # Initialization & policy definition
-        sess.run(tf.global_variables_initializer())
+        if args.restore ==0:
+            sess.run(tf.global_variables_initializer())
+        else:
+            saver.restore(sess, "policy_model/policymodel.ckpt")
 
     # Collect training data
     action_sample = action_dist.sample(sample_shape=())
@@ -49,9 +54,7 @@ def generate_samples(env):
     train_data=[]
     print("Episode lengths: ")
     for _ in range(batch_size):
-        #TODO: Stop when all files are exhausted. Check f_n >= len(filenames), and consider:
-        #TODO:  1.  len(train_data) != batch_size
-        #TODO:  2.  Not only end episode, but also jump out of the n_iter loop in main immediately to plot part
+
         obs = env.reset(load_passage(filenames[f_n]))
         f_n += 1
         traj = []
@@ -127,7 +130,7 @@ def main(args):
 
     # Iterations
     for _ in range(args.n_iter):
-        generate_samples(env)
+        generate_samples(env, args)
         estimate_return(args.lmbd)
         update_policy(args.alpha)
 
@@ -141,8 +144,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--restore", type = int, default = 1)
     parser.add_argument("--n_iter", type=int, default=20)
     parser.add_argument("--lmbd", type=float, default=1.0)
     parser.add_argument("--alpha", type=float, default=0.01)
-
-    main(parser.parse_args())
+    
+    main(parser.parse_args()) 
+    if parser.parse_args().restore==0:
+        saver.save(sess, "policy_model/policymodel.ckpt")   
+    sess.close()
