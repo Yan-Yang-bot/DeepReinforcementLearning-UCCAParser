@@ -25,3 +25,5 @@ env-train*.json
 env_r_model-*
 dist/
 drl_ucca.egg-info/
+
+*.DS_Store
