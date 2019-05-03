@@ -253,14 +253,17 @@ class State:
         elif action.is_type(Actions.Label):
             self.need_label = self.stack[-action.tag]  # The parser is responsible to choose a label and set it
         elif action.is_type(Actions.Reduce):  # Pop stack (no more edges to create with this node)
+            assert len(self.stack) > 1
             self.stack.pop()
         elif action.is_type(Actions.Swap):  # Place second (or more) stack item back on the buffer
             distance = action.tag or 1
             s = slice(-distance - 1, -1)
+            assert self.stack[s].index < self.stack[-1].index
             self.log.append("%s <--> %s" % (", ".join(map(str, self.stack[s])), self.stack[-1]))
             self.buffer.extendleft(reversed(self.stack[s]))  # extendleft reverses the order
             del self.stack[s]
         elif action.is_type(Actions.Finish):  # Nothing left to do
+            assert all([len(self.stack)==1, self.stack[0].index==0, len(self.buffer)==0])
             self.finished = True
         else:
             raise ValueError("Invalid action: %s" % action)
