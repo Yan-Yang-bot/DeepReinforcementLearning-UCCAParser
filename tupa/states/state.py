@@ -12,6 +12,8 @@ from .node import Node
 from ..action import Actions
 from ..config import Config
 
+from tests.conftest import Settings
+
 
 class InvalidActionError(AssertionError):
     def __init__(self, *args, is_type=False):
@@ -25,7 +27,11 @@ class State:
     :param passage: a Passage object to get the tokens from, and everything else if training
     """
     def __init__(self, passage):
-        self.args = Config().args
+        config = Config()
+        setting = Settings(*('implicit'))
+        config.update(setting.dict())
+        config.set_format("ucca")
+        self.args = config.args
         self.args.verify = True
         self.constraints = CONSTRAINTS.get(passage.extra.get("format"), Constraints)(implicit=self.args.implicit)
         self.log = []
@@ -258,7 +264,8 @@ class State:
         elif action.is_type(Actions.Swap):  # Place second (or more) stack item back on the buffer
             distance = action.tag or 1
             s = slice(-distance - 1, -1)
-            assert self.stack[s].index < self.stack[-1].index
+            assert distance==0
+            assert self.stack[s][0].index < self.stack[-1].index
             self.log.append("%s <--> %s" % (", ".join(map(str, self.stack[s])), self.stack[-1]))
             self.buffer.extendleft(reversed(self.stack[s]))  # extendleft reverses the order
             del self.stack[s]
