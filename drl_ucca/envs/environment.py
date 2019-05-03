@@ -27,7 +27,7 @@ class UccaEnv(gym.Env):
                                               node_dropout=config.args.node_dropout,
                                               omit_features=config.args.omit_features)
 
-        self.sess=tf.Session()
+        self.sess = tf.Session()
         saver = tf.train.import_meta_graph(glob('env_r_model-*.meta')[0])
         saver.restore(self.sess, tf.train.latest_checkpoint('./'))
         graph = tf.get_default_graph()
@@ -72,12 +72,12 @@ class UccaEnv(gym.Env):
         # Get reward
         r = self._get_reward(action)
         # Take action
-        type = self.simpleActions[action] if action < 4 else self.complexActions[(action-4)//14]
-        label = None if action < 4 else self.allLabels[(action-4)%14]
-        act = Action(type, tag=label)
+        a_type = self.simpleActions[action] if action < 4 else self.complexActions[(action-4)//14]
+        label = None if action < 4 else self.allLabels[(action-4) % 14]
+        act = Action(a_type, tag=label)
         try:
             self.state.transition(act)
-        #TODO: continue training reward function here
+        # TODO: continue training reward function here
         # The actions that produce errors are punished more than the actions that differ from
         # what the reward function suggests, because the former has more certainty to be wrong.
         # After reward function is improved the ratio of these two kinds of negative rewards should change.
