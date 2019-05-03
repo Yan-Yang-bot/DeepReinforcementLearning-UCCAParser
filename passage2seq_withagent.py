@@ -2,9 +2,9 @@ import os, sys, json, gzip
 from glob import glob
 from itertools import combinations
 from collections import OrderedDict
-
+from tupa.action import Action
 from ucca import ioutil
-
+import tensorflow as tf
 from tupa.action import Actions
 from tupa.oracle import Oracle
 from tupa.states.state import State
@@ -15,7 +15,7 @@ def basename(filename):
     return os.path.basename(os.path.splitext(filename)[0])
 
 def passage_files():
-    return [f for dir in ['dev-xml','train-xml'] for f in glob("data/raw/{}/*".format(dir))]
+    return [f for dir in ['test-xml'] for f in glob("data/raw/{}/*".format(dir))]
 
 def load_passage(filename):
     passages = ioutil.read_files_and_dirs(filename, attempts=1, delay=0)
@@ -55,46 +55,33 @@ allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Termin
 allActions = [{'type':t, 'hasLabel': False, 'label':None} for t in ['SHIFT', 'REDUCE', 'SWAP', 'FINISH']]
 allActions.extend([{'type':t, 'hasLabel':True, 'label':l} for l in allLabels for t in ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']])
 
-def gen_actions(passage, feature_extractor):
+def gen_actions(passage, feature_extractor,policy):
     global envTrainingData, allLabels, allTypes, allActions
+
+    simpleActions = ['SHIFT', 'REDUCE', 'SWAP', 'FINISH']
+    allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
+    complexActions = ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']
+
     state = State(passage)
     actions = Actions()
 
     while True:
-        acts = oracle.get_actions(state, actions).values()
-        type_label_maps = {a.type:a.tag for a in acts} # There should be no duplicate types with different tags since there is only one golden tree
         obs = feature_extractor.extract_features(state)['numeric']
-
         for index in [7, 9, 11, 14, 15, 16, 17, 17, 18, 22]:
             del obs[index]
-        for act in allActions:
-            cur_type = act['type']
-            cur_has_label = act['hasLabel']
-            cur_label = act['label']
-            # TODO: Double consider the reward mechanism.
-            # Encourage the agent to produce less mistake VS encourage it to produce more correctness:
-            # The latter will encourage an episode to go on endlessly, while the former encourage it to end as soon as possible.
-            # For now, choose to be neutral: 100% correct = 0.5 reward; 100% wrong = -0.5 reward
-            r = -0.5
-            if cur_type in list(type_label_maps.keys()): # If action type matches
-                r += 0.5
-                if cur_has_label and cur_label == type_label_maps[cur_type] or not cur_has_label: # If action has no label or label matches
-                    r += 0.5
-            actNum = allActions.index(act)
-            trainingData = {'obs':obs, 'act':actNum, 'r':r}
-            envTrainingData.append(trainingData)
-        action = min(acts, key=str)
+        action = policy(obs)
+        type = simpleActions[action] if action < 4 else complexActions[(action-4)//14]
+        label = None if action < 4 else allLabels[(action-4)%14]
+        action  = Action(type,tag = label)
+
         state.transition(action)
         s = str(action)
-        # if state.need_label:
-        #     label, _ = oracle.get_label(state, action)
-        #     state.label_node(label)
-        #     s += " " + str(label)
+        print(s)
         yield s
         if state.finished:
             break
 
-def produce_oracle(filename, feature_extractor):
+def produce_oracle(filename, feature_extractor,policy):
     passage = load_passage(filename)
     sys.stdout.write('.')
     sys.stdout.flush()
@@ -102,7 +89,7 @@ def produce_oracle(filename, feature_extractor):
     #with open(store_sequence_to, "w", encoding="utf-8") as f:
     #    for i, action in enumerate(gen_actions(passage, feature_extractor)):
     #        pass#print(action, file=f)
-    for _ in gen_actions(passage, feature_extractor):
+    for _ in gen_actions(passage, feature_extractor,policy):
         pass
 
 
@@ -117,7 +104,6 @@ if __name__=="__main__":
                                               hierarchical=False,
                                               node_dropout=config.args.node_dropout,
                                               omit_features=config.args.omit_features)
-
     """load network"""
     n_state = 25
     n_action = 88
@@ -138,20 +124,14 @@ if __name__=="__main__":
     saver = tf.train.Saver({"w1":w1, "w2":w2,"w3":w3})
     sess = tf.Session()
     saver.restore(sess,"policy_model/policymodel.ckpt")
-    
     action_sample = action_dist.sample(sample_shape=())
     # this is to substitute the Oracle.get_action(state) function
     policy = lambda obs:sess.run([action_sample],feed_dict={state:[obs]})[0]
     """network ends"""
-
     filenames = passage_files()
     for filename in filenames[:100]: #TODO: solve the problem of "KILLED" while wring file. Use 100 files temporarily before solving this.
-        produce_oracle(filename, feature_extractor)
+        
+        produce_oracle(filename, feature_extractor, policy)
+    sess.close()
 
-    # dump envTrainingData to a file for further learning in rewardNN.py
-    json_str = json.dumps(envTrainingData) + "\n"
-    json_bytes = json_str.encode('utf-8')
-    with gzip.GzipFile('env-train.json', 'w') as fout:
-        fout.write(json_bytes)
-    with gzip.GzipFile('env-train-copy.json', 'w') as fout:
-        fout.write(json_bytes)
+    
