@@ -72,7 +72,8 @@ def generate_samples(env, debug):
             if debug:
                 a_type = simpleActions[action] if action < 4 else complexActions[(action-4)//14]
                 label = None if action < 4 else allLabels[(action-4) % 14]
-                print(a_type+('-'+label if label else ''))
+                if a_type in ['SHIFT', 'REDUCE', 'NODE', 'SWAP', 'FINISH']:
+                    print(a_type+('-'+label if label else ''))
 
             traj[t]['act']=action
             obs, r, done, info = env.step(action)
