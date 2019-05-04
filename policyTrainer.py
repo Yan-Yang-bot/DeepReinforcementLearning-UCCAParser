@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 ave_returns_plot = []
 
 # Other globals
-f_n = 0
+f_n = 0 # count the number of input files
 filenames = glob("data/raw/train-xml/*")
 batch_size = 40
 sess = tf.Session()
@@ -25,7 +25,7 @@ def generate_samples(env, debug):
     """
     if 'state' not in globals():
         # Get params for action and state spaces
-        global train_data, state, action_dist, f_n, filenames, saver
+        global train_data, sess, state, action_dist, f_n, filenames, saver
         n_state = 25
         n_action = 88
 
@@ -156,11 +156,11 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_iter", type=int, default=20)
-    parser.add_argument("--lmbd", type=float, default=1.0)
-    parser.add_argument("--alpha", type=float, default=0.01)
+    parser.add_argument('-n', "--n_iter", type=int, default=20)
+    parser.add_argument('-b', "--lmbd", type=float, default=1.0)
+    parser.add_argument('-a', "--alpha", type=float, default=0.01)
 
-    parser.add_argument("--debug", type=bool, default=False)
+    parser.add_argument('-e', "--debug", action="store_true")
 
     main(parser.parse_args())
     saver.save(sess, "policy_model/policymodel.ckpt")
