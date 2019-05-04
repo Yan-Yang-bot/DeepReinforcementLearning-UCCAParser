@@ -33,6 +33,7 @@ class Node:
         self.incoming = []  # Edge list
         self.children = []  # Node list: the children of all edges in outgoing
         self.parents = []  # Node list: the parents of all edges in incoming
+        self.contains_primary_parent = False
         self.outgoing_tags = set()  # String set
         self.incoming_tags = set()  # String set
         self.node = None  # Associated core.Node, when creating final Passage
@@ -47,6 +48,9 @@ class Node:
         self.incoming.append(edge)
         self.parents.append(edge.parent)
         self.incoming_tags.add(edge.tag)
+        # TODO: It seems validation should be moved here.
+        if not self.contains_primary_parent and not edge.remote:
+            self.contains_primary_parent = True
 
     def add_outgoing(self, edge):
         self.outgoing.append(edge)
