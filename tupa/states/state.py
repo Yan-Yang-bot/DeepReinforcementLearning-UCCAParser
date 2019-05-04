@@ -28,7 +28,7 @@ class State:
     """
     def __init__(self, passage):
         config = Config()
-        setting = Settings(*('implicit'))
+        setting = Settings('implicit')
         config.update(setting.dict())
         config.set_format("ucca")
         self.args = config.args
@@ -48,6 +48,7 @@ class State:
         self.labeled = any(n.outgoing or n.attrib.get(LABEL_ATTRIB) for n in l1.all)
         self.terminals = [Node(i, orig_node=t, root=passage, text=t.text, paragraph=t.paragraph, tag=t.tag)
                           for i, t in enumerate(l0.all, start=1)]
+        self.terminal_index = [t.index for t in self.terminals]
         self.stack = []
         self.buffer = deque()
         self.nodes = []
@@ -259,7 +260,7 @@ class State:
         elif action.is_type(Actions.Label):
             self.need_label = self.stack[-action.tag]  # The parser is responsible to choose a label and set it
         elif action.is_type(Actions.Reduce):  # Pop stack (no more edges to create with this node)
-            assert len(self.stack) > 1
+            assert self.stack[-1].index != 0 # Do not pop root
             self.stack.pop()
         elif action.is_type(Actions.Swap):  # Place second (or more) stack item back on the buffer
             distance = action.tag or 1
@@ -335,6 +336,18 @@ class State:
                     break
             else:
                 return None
+
+            '''Validations'''
+            if child:
+                assert child.index != 0, 'Do not make a node from the root, or take root as a child.'
+                if action.is_type(Actions.LeftEdge, Actions.RightEdge, Actions.Node):
+                    assert not child.contains_primary_parent, 'Only one primary parent is allowed.'
+            if parent:
+                assert parent.index not in self.terminal_index, 'Do not take raw token as a parent.'
+                if child:
+                    assert parent not in child.descendants, 'Do not form a circle.'
+            '''Validation ends'''
+
             return parent, child, (EdgeTags.Terminal if child and child.text else
                                    EdgeTags.Punctuation if child and child.children and all(
                                        c.tag == NodeTags.Punct for c in child.children)
