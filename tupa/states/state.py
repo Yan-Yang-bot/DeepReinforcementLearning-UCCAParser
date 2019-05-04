@@ -255,6 +255,8 @@ class State:
             action.edge = self.add_edge(Edge(parent, child, tag, remote=action.remote))
             if action.node:
                 self.buffer.appendleft(action.node)
+            if tag != action.tag:
+                raise Exeption('invalid tag')
         elif action.is_type(Actions.Shift):  # Push buffer head to stack; shift buffer
             self.stack.append(self.buffer.popleft())
         elif action.is_type(Actions.Label):

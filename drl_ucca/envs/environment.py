@@ -83,6 +83,11 @@ class UccaEnv(gym.Env):
         # After reward function is improved the ratio of these two kinds of negative rewards should change.
         except (ValueError, IndexError, AssertionError):
             r = -0.5
+        except Exception as exc:
+            if exc.args[0] == 'invalid tag':
+                print('invalid tag')
+                if r >= 0.25:
+                    r = 0
         # Get new state
         self.stateVec = self.get_feature()
         return self.stateVec, r, self.state.finished, ''
