@@ -2,7 +2,7 @@ from collections import OrderedDict
 from glob import glob
 import gym
 import tensorflow as tf
-from passage2oracles import Settings
+from tests.conftest import Settings
 from tupa.action import Action
 from tupa.states.state import State
 from tupa.config import Config

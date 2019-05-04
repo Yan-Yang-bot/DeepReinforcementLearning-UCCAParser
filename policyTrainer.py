@@ -5,7 +5,7 @@ import gym
 import sys
 import drl_ucca
 from glob import glob
-from passage2oracles import load_passage
+from tests.conftest import load_passage
 
 # Preparation for plotting
 import matplotlib.pyplot as plt

@@ -10,6 +10,7 @@ from tupa.oracle import Oracle
 from tupa.states.state import State
 from tupa.config import Config
 from tupa.features.dense_features import DenseFeatureExtractor
+from tests.conftest import Settings
 
 
 
@@ -27,31 +28,6 @@ def load_passage(filename):
     except StopIteration:
         return passages
 
-class Settings:
-    SETTINGS = ("implicit", "linkage", "unlabeled")
-    VALUES = {"unlabeled": (None, [])}
-    INCOMPATIBLE = (("linkage", "unlabeled"),)
-
-    def __init__(self, *args):
-        for attr in self.SETTINGS:
-            setattr(self, attr, attr in args)
-
-    @classmethod
-    def all(cls):
-        return [Settings(*c) for n in range(len(cls.SETTINGS) + 1) for c in combinations(cls.SETTINGS, n)
-                if not any(all(s in c for s in i) for i in cls.INCOMPATIBLE)]
-
-    def dict(self):
-        return {attr: self.VALUES.get(attr, (False, True))[getattr(self, attr)] for attr in self.SETTINGS}
-
-    def list(self):
-        return [attr for attr in self.SETTINGS if getattr(self, attr)]
-
-    def suffix(self):
-        return "_".join([""] + self.list())
-
-    def __str__(self):
-        return "-".join(self.list()) or "default"
 
 envTrainingData = []
 allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
