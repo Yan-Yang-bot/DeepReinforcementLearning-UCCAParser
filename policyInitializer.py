@@ -25,7 +25,7 @@ def load_data(t):
     data.extend(json.loads(gzip.GzipFile('env-train-4.json').read().decode('utf-8')))
     print('fourth file')
     data.extend(json.loads(gzip.GzipFile('env-train-5.json').read().decode('utf-8')))
-    print('all files loaded')
+    print('all files loaded', len(data))
 
     # data = data[:3000000]
     np.random.shuffle(data)
@@ -37,7 +37,8 @@ def load_data(t):
     _x = []
     _y = []
     # Populate data
-    for d in data:
+    while data:
+        d = data[-1]
         if d['r'] == 0.5:
             _x.append(d['obs'])
             _y.append(act_vectors[d['act']])
@@ -45,6 +46,7 @@ def load_data(t):
             if j % 1000 == 0:
                 sys.stdout.write(str(j/1000) + ' ')
                 sys.stdout.flush()
+        del data[-1]
     # Transform to numpy array
     _x = np.asarray(_x)
     _y = np.asarray(_y)
