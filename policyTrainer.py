@@ -44,6 +44,7 @@ def generate_samples(env, debug):
         action_dist = tfp.distributions.Categorical(probs=action_prob[0])
 
         # Initialization & policy definition
+        saver.restore(sess, "policy_model/policyinitial.ckpt")
         sess.run(tf.global_variables_initializer())
 
         if debug:
