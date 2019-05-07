@@ -10,3 +10,4 @@ parsimonious
 matplotlib
 tensorflow>=1.13.1
 argparse
+numpy

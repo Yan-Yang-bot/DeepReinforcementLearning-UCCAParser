@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow_probability as tfp
 import argparse
 import gym
 import sys
@@ -21,7 +20,6 @@ train_data = []
 def generate_samples(env, debug):
     """
     :param env: environment handler
-    :param debug: whether to switch on debug loggings
     """
     if 'state' not in globals():
         # Get params for action and state spaces
@@ -69,13 +67,6 @@ def generate_samples(env, debug):
         while True:
             traj.append({'obs':obs})
             action = policy(obs)
-
-            if debug:
-                a_type = simpleActions[action] if action < 4 else complexActions[(action-4)//14]
-                label = None if action < 4 else allLabels[(action-4) % 14]
-                if a_type in ['SHIFT', 'REDUCE', 'NODE', 'SWAP', 'FINISH']:
-                    print(a_type+('-'+label if label else ''))
-
             traj[t]['act']=action
             obs, r, done, info = env.step(action)
             traj[t]['R']=r
