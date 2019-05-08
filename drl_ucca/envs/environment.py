@@ -33,6 +33,7 @@ class UccaEnv(gym.Env):
         graph = tf.get_default_graph()
         self.x = graph.get_tensor_by_name("Placeholder:0")
         self.y = graph.get_tensor_by_name("dense_2/BiasAdd:0")
+        self.length = None
 
     def get_feature(self):
         f = self.feature_extractor.extract_features(self.state)['numeric']
@@ -93,12 +94,14 @@ class UccaEnv(gym.Env):
                 info = 'invalid tag but not canceled'
             else:
                 raise exc
+        r = r/self.length if r>0 else r
         # Get new state
         self.stateVec = self.get_feature()
         return self.stateVec, r, self.state.finished, info
 
     def reset(self, passage):
         self.state = State(passage)
+        self.length = len(self.state.terminals)
         self.stateVec = self.get_feature()
         return self.stateVec
 

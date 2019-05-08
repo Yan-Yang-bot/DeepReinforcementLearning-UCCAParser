@@ -14,8 +14,8 @@ ave_returns_plot = []
 # Other globals
 f_n = 0 # count the number of input files
 filenames = glob("data/raw/train-xml/*")
-batch_size = 5
-batch_size_max = 40
+batch_size = 1
+batch_size_max = 1
 sess = tf.Session()
 train_data = []
 
@@ -42,13 +42,14 @@ def generate_samples(env, debug):
         h2 = tf.math.softmax(o2)
         action_logits = tf.matmul(h2, w3)
         action_prob = tf.math.softmax(action_logits)
-        action_dist = tfp.distributions.Categorical(probs=action_prob[0])
+        action_dist = tfp.distributions.Categorical(probs=action_prob)
 
         # Initialization & policy definition
         saver.restore(sess, "policy_model/policyinitial.ckpt")
         sess.run(tf.global_variables_initializer())
 
         if debug:
+            global simpleActions, allLabels, complexActions
             simpleActions = ['SHIFT', 'REDUCE', 'SWAP', 'FINISH']
             allLabels = ['H', 'A', 'C', 'L', 'D', 'E', 'G', 'S', 'N', 'P', 'R', 'F', 'Terminal', 'U']
             complexActions = ['IMPLICIT', 'NODE', 'RIGHT-EDGE', 'LEFT-EDGE', 'RIGHT-REMOTE', 'LEFT-REMOTE']
@@ -56,7 +57,7 @@ def generate_samples(env, debug):
 
     # Collect training data
     action_sample = action_dist.sample(sample_shape=())
-    policy = lambda obs:sess.run([action_sample],feed_dict={state:[obs]})[0]
+    policy = lambda obs:sess.run([action_sample],feed_dict={state:[obs]})[0][0]
     train_data=[]
     print("Episode lengths: ")
     for _ in range(batch_size):
@@ -111,11 +112,12 @@ def update_policy(alpha):
     :param alpha: learning rate
     """
     # Build dataflow for _g * log probabilities of sampled actions
-    act = tf.placeholder(shape=(), dtype=tf.int32)
-    _g = tf.placeholder(shape=(), dtype=tf.float32)
+    act = tf.placeholder(shape=(None,), dtype=tf.int32)
+    _g = tf.placeholder(shape=(None,), dtype=tf.float32)
     obj = tf.multiply(_g, action_dist.log_prob(act))
+    objM, objD = tf.nn.moments(obj,0)
     # Optimizer pre-definition (minimizing negative object == maximizing object)
-    neg_obj = tf.scalar_mul(-1,obj)
+    neg_obj = tf.scalar_mul(-1,objM)
     adam = tf.train.AdamOptimizer(learning_rate=alpha)
     opt = adam.minimize(neg_obj)
     # Initialization for newly introduced variables
@@ -125,12 +127,16 @@ def update_policy(alpha):
     return_sum = 0
     for j in range(batch_size):
         traj = train_data[j]
-        for k in range(len(traj)):
-            cur = traj[k]
-            feed_dict={state: [cur['obs']],
-                       act: cur['act'],  _g: cur['R']}
-            obj_value, _ = sess.run([obj, opt], feed_dict=feed_dict)
-            print("object:", obj_value)
+        l = len(traj)
+        k = 0
+        while k < l:
+            end = min(l,k+32)
+            curBatch = traj[k:end]
+            feed_dict={state: [cur['obs'] for cur in curBatch],
+                       act: [cur['act'] for cur in curBatch],  _g: [cur['R'] for cur in curBatch]}
+            obj_mean, obj_std, _ = sess.run([objM, objD, opt], feed_dict=feed_dict)
+            print("object:", obj_mean, "+/-", obj_std)
+            k += 32
         print('return: ', traj[0]['R'])
         return_sum += traj[0]['R']
     # Logging & Recording for later plot
@@ -157,14 +163,14 @@ def main(args):
     plt.plot(ave_returns_plot)
     plt.ylabel('mean return')
     plt.xlabel('# of iterations')
-    plt.saveFig('policyTrainCurve.png')
+    plt.savefig('policyTrainCurve.png')
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', "--n_iter", type=int, default=20)
     parser.add_argument('-b', "--lmbd", type=float, default=1.0)
-    parser.add_argument('-a', "--alpha", type=float, default=0.005)
+    parser.add_argument('-a', "--alpha", type=float, default=0.003)
 
     parser.add_argument('-e', "--debug", action="store_true")
 
