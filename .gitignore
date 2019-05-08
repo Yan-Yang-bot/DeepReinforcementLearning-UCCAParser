@@ -1,4 +1,7 @@
+*.png
+*.json
 *__pycache__
+data/raw/test-xml/*.xml
 data/raw/train-xml/6*
 data/raw/train-xml/5*
 data/raw/train-xml/4*
