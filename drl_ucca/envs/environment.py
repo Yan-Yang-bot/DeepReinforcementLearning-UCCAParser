@@ -69,6 +69,7 @@ class UccaEnv(gym.Env):
                  However, official evaluations of your agent are not allowed to
                  use this for learning.
         """
+        info = ''
         # Get reward
         r = self._get_reward(action)
         # Take action
@@ -83,14 +84,18 @@ class UccaEnv(gym.Env):
         # After reward function is improved the ratio of these two kinds of negative rewards should change.
         except (ValueError, IndexError, AssertionError):
             r = -0.5
+            info = 'canceled ' + str(len(self.state.stack)) + ' ' + str(len(self.state.buffer))
         except Exception as exc:
-            if exc.args[0] == 'invalid tag':
-                print('invalid tag')
+            if exc.args[0].startswith('invalid tag'):
+                # print(exc)
                 if r >= 0.25:
                     r = 0
+                info = 'invalid tag but not canceled'
+            else:
+                raise exc
         # Get new state
         self.stateVec = self.get_feature()
-        return self.stateVec, r, self.state.finished, ''
+        return self.stateVec, r, self.state.finished, info
 
     def reset(self, passage):
         self.state = State(passage)

@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_probability as tfp
 import argparse
 import gym
 import sys
@@ -13,13 +14,15 @@ ave_returns_plot = []
 # Other globals
 f_n = 0 # count the number of input files
 filenames = glob("data/raw/train-xml/*")
-batch_size = 40
+batch_size = 1
+batch_size_max = 40
 sess = tf.Session()
 train_data = []
 
 def generate_samples(env, debug):
     """
     :param env: environment handler
+    :param debug: whether to switch on debug loggings
     """
     if 'state' not in globals():
         # Get params for action and state spaces
@@ -69,6 +72,13 @@ def generate_samples(env, debug):
             action = policy(obs)
             traj[t]['act']=action
             obs, r, done, info = env.step(action)
+
+            if debug:
+                a_type = simpleActions[action] if action < 4 else complexActions[(action-4)//14]
+                label = None if action < 4 else allLabels[(action-4) % 14]
+                if a_type in ['SHIFT', 'REDUCE', 'NODE', 'SWAP', 'FINISH', 'IMPLICIT']:
+                    print(a_type + ('-'+label if label else '') + (' (' + info + ')' if info else ''))
+
             traj[t]['R']=r
             t += 1
             if done:
@@ -138,6 +148,8 @@ def main(args):
         generate_samples(env, args.debug)
         estimate_return(args.lmbd)
         update_policy(args.alpha)
+        if batch_size < batch_size_max:
+            batch_size += 1
 
     # Plot
     env.close()

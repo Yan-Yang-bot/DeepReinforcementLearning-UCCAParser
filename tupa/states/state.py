@@ -31,6 +31,7 @@ class State:
         setting = Settings('implicit')
         config.update(setting.dict())
         config.set_format("ucca")
+        self.allow_implicit = 0
         self.args = config.args
         self.args.verify = True
         self.constraints = CONSTRAINTS.get(passage.extra.get("format"), Constraints)(implicit=self.args.implicit)
@@ -256,7 +257,7 @@ class State:
             if action.node:
                 self.buffer.appendleft(action.node)
             if tag != action.tag:
-                raise Exeption('invalid tag')
+                raise Exception('invalid tag {} vs {}'.format(tag, action.tag))
         elif action.is_type(Actions.Shift):  # Push buffer head to stack; shift buffer
             self.stack.append(self.buffer.popleft())
         elif action.is_type(Actions.Label):
@@ -264,6 +265,7 @@ class State:
         elif action.is_type(Actions.Reduce):  # Pop stack (no more edges to create with this node)
             assert self.stack[-1].index != 0 # Do not pop root
             self.stack.pop()
+            self.allow_implicit += 1 # each four 'REDUCE' can allow one 'IMPLICIT'
         elif action.is_type(Actions.Swap):  # Place second (or more) stack item back on the buffer
             distance = action.tag or 1
             s = slice(-distance - 1, -1)
@@ -348,6 +350,9 @@ class State:
                 assert parent.index not in self.terminal_index, 'Do not take raw token as a parent.'
                 if child:
                     assert parent not in child.descendants, 'Do not form a circle.'
+                else:
+                    assert self.allow_implicit >= 4, 'Too many IMPLICIT\'s.'
+                    self.allow_implicit -= 5
             '''Validation ends'''
 
             return parent, child, (EdgeTags.Terminal if child and child.text else
