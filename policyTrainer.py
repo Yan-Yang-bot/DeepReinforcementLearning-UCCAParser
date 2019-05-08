@@ -14,7 +14,7 @@ ave_returns_plot = []
 # Other globals
 f_n = 0 # count the number of input files
 filenames = glob("data/raw/train-xml/*")
-batch_size = 1
+batch_size = 5
 batch_size_max = 40
 sess = tf.Session()
 train_data = []
@@ -140,6 +140,7 @@ def update_policy(alpha):
 
 def main(args):
 
+    global batch_size, batch_size_max
     # Initialize environment
     env = gym.make('drlenv-v0')
 
@@ -156,14 +157,14 @@ def main(args):
     plt.plot(ave_returns_plot)
     plt.ylabel('mean return')
     plt.xlabel('# of iterations')
-    plt.show()
+    plt.saveFig('policyTrainCurve.png')
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', "--n_iter", type=int, default=20)
     parser.add_argument('-b', "--lmbd", type=float, default=1.0)
-    parser.add_argument('-a', "--alpha", type=float, default=0.01)
+    parser.add_argument('-a', "--alpha", type=float, default=0.005)
 
     parser.add_argument('-e', "--debug", action="store_true")
 
