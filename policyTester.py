@@ -41,14 +41,18 @@ def gen_actions(passage, feature_extractor, policy):
         label = None if action < 4 else allLabels[(action-4) % 14]
         action = Action(a_type, tag=label)
 
-        state.transition(action)
+        try:
+            state.transition(action)
+        except Exception:
+            pass
+        except (ValueError, IndexError, AssertionError):
+            continue
         yield str(action)
         if state.finished:
             printStruct(state.root)
             break
 
 def printStruct(r, s=''):
-    print(s+str(r))
     for o in r.outgoing:
         print(s+'  '+str(o))
         printStruct(o.child, s+'  ')
@@ -99,7 +103,7 @@ if __name__ == "__main__":
         filename = sys.argv[1]
         produce_oracle(filename, feature_extractor, policy)
     else:
-        filenames = glob("data/raw/test-xml/*")
+        filenames = glob("data/raw/test-xml/*.xml")
         for filename in filenames[:100]:
             print()
             print(filename)
