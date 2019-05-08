@@ -245,7 +245,7 @@ class State:
         :param action: Action object to apply
         """
         action.apply()
-        self.log = []
+        #self.log = []
         pct = self.get_parent_child_tag(action)
         if pct:
             parent, child, tag = pct
@@ -350,6 +350,10 @@ class State:
                 assert parent.index not in self.terminal_index, 'Do not take raw token as a parent.'
                 if child:
                     assert parent not in child.descendants, 'Do not form a circle.'
+                    for log in self.log:
+                        info = log.split(' ')
+                        if info[0]=='edge:':
+                            assert not (str(parent)==info[1] and str(child)==info[3]), 'Edge already exist.'
                 else:
                     assert self.allow_implicit >= 4, 'Too many IMPLICIT\'s.'
                     self.allow_implicit -= 5

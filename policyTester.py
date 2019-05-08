@@ -43,10 +43,10 @@ def gen_actions(passage, feature_extractor, policy):
 
         try:
             state.transition(action)
-        except Exception:
-            pass
         except (ValueError, IndexError, AssertionError):
             continue
+        except Exception:
+            pass
         yield str(action)
         if state.finished:
             printStruct(state.root)
