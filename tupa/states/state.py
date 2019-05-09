@@ -328,9 +328,9 @@ class State:
     PARENT_CHILD = (
         ((Actions.LeftEdge, Actions.LeftRemote), (-1, -2)),
         ((Actions.RightEdge, Actions.RightRemote), (-2, -1)),
-        ((Actions.Node, Actions.RemoteNode), (None, -1)),
+        ((Actions.Node,), (None, -1)),
         ((Actions.Implicit,), (-1, None)),
-    )
+    )#((Actions.Node, Actions.RemoteNode), (None, -1)),
 
     def get_parent_child_tag(self, action):
         try:
@@ -346,6 +346,8 @@ class State:
                 assert child.index != 0, 'Do not make a node from the root, or take root as a child.'
                 if action.is_type(Actions.LeftEdge, Actions.RightEdge, Actions.Node):
                     assert not child.contains_primary_parent, 'Only one primary parent is allowed.'
+                if child.text: # The case of text as a child, which will be marked as Terminal
+                    assert not child.incoming and not action.is_type(Actions.LeftRemote, Actions.RightRemote), 'Text tokens allow no remote edge, and allow only one incoming edge.'
             if parent:
                 assert parent.index not in self.terminal_index, 'Do not take raw token as a parent.'
                 if child:
@@ -359,10 +361,14 @@ class State:
                     self.allow_implicit -= 5
             '''Validation ends'''
 
-            return parent, child, (EdgeTags.Terminal if child and child.text else
-                                   EdgeTags.Punctuation if child and child.children and all(
-                                       c.tag == NodeTags.Punct for c in child.children)
-                                   else action.tag)  # In unlabeled parsing, keep a valid graph
+            if child and child.text:
+                return parent, child, EdgeTags.Terminal
+            elif child and child.children and all(c.tag == NodeTags.Punct for c in child.children):
+                return parent, child, EdgeTags.Punctuation
+            else:
+                assert action.tag!= EdgeTags.Terminal and action.tag != EdgeTags.Punctuation, 'Invalid Terminal or Punctuation tag'
+                return parent, child, action.tag
+
         except IndexError:
             return None
 
