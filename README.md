@@ -31,6 +31,7 @@ The environment is set in `drl_ucca` folder, with the trained and stored reward 
 The Reinforcement Learning part, `policyTrainer.py`, will use this environment as a black box.
 Use:
 ```
+python policyInitializer.py # This is to initialize the weights of our trainable parameters better than random
 python policyTrainer.py # The silence mode
 python policyTrainer.py -e # This will output all oracles predicted
 ```
