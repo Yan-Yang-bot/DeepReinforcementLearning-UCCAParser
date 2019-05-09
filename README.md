@@ -1,5 +1,5 @@
 # DRL_UCCA
-A Deep Reinforcement Learning Parser for UCCA.
+A Deep Reinforcement Learning Parser for UCCA, course final project, COSC-689
 
 
 ## Preparations
