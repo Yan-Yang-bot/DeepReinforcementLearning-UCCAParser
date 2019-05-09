@@ -11,11 +11,12 @@ A Deep Reinforcement Learning Parser for UCCA.
 3. Check README instructions on [data](https://github.com/DIMPLY/DRL_UCCA/tree/master/data/raw) directory page.
 
 ## Test the result
+***You can test the result of our ready trained model directly, or you can complete the following steps first to get you own trained model.***
+
 Use the name of any xml file under `data/raw/test-xml` directory (including the path) to run:
 ```
 python policyTester.py <filename>
 ```
-***You can test the result of our ready trained model directly, or you can complete the following steps first to get you own trained model.***
 
 ## Train the reward function
 Use the following to produce reward function training data:
