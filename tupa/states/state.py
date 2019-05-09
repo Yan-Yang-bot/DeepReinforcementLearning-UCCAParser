@@ -348,6 +348,8 @@ class State:
                     assert not child.contains_primary_parent, 'Only one primary parent is allowed.'
                 if child.text: # The case of text as a child, which will be marked as Terminal
                     assert not child.incoming and not action.is_type(Actions.LeftRemote, Actions.RightRemote), 'Text tokens allow no remote edge, and allow only one incoming edge.'
+                    if parent:
+                        assert parent.children and child.tag==NodeTags.Punct and all(c.tag==NodeTags.Punct for c in parent.children), 'Only connect text tokens which are punctuations to existing parents which already and only have punctuation children.'
             if parent:
                 assert parent.index not in self.terminal_index, 'Do not take raw token as a parent.'
                 if child:

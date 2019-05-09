@@ -168,9 +168,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', "--n_iter", type=int, default=20)
+    parser.add_argument('-n', "--n_iter", type=int, default=60)
     parser.add_argument('-b', "--lmbd", type=float, default=1.0)
-    parser.add_argument('-a', "--alpha", type=float, default=0.003)
+    parser.add_argument('-a', "--alpha", type=float, default=0.001)
 
     parser.add_argument('-e', "--debug", action="store_true")
 
