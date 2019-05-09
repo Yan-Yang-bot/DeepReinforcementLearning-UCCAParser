@@ -29,3 +29,14 @@ This will store some files containing the final state of the model at the end of
 ## The Reinforcement Learning part
 The environment is set in `drl_ucca` folder, with the trained and stored reward function model plugged in.
 The Reinforcement Learning part, `policyTrainer.py`, will use this environment as a black box.
+Use:
+```
+python policyTrainer.py # The silence mode
+python policyTrainer.py -e # This will output all oracles predicted
+```
+
+## Test the result
+Use the name of any xml file under `data/raw/test-xml` directory (including the path) to run:
+```
+python policyTester.py <filename>
+```
