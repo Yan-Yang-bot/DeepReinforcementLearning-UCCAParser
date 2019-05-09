@@ -42,3 +42,5 @@ python policyTrainer.py # The silence mode
 python policyTrainer.py -e # This will output all oracles predicted
 ```
 
+## Reference
+Used code from https://github.com/danielhers/tupa.
