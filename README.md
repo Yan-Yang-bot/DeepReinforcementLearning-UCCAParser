@@ -11,7 +11,7 @@ A Deep Reinforcement Learning Parser for UCCA, course final project, COSC-689
 3. Check README instructions on [data](https://github.com/DIMPLY/DRL_UCCA/tree/master/data/raw) directory page.
 
 ## Test the result
-***You can test the result of our ready trained model directly, or you can first complete all other steps after this one, to get your own trained model.***
+***You can test the result of our ready trained model directly, or you can first complete all steps following this one to get your own trained model.***
 
 Use the name of any xml file under `data/raw/test-xml` directory (including the path) to run:
 ```
